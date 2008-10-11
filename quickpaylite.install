@@ -1,0 +1,182 @@
+<?php
+// $Id: quickpaylite.install,v 1.2 2008/06/02 00:18:21 eaton Exp $
+
+/**
+ * @file
+ * Scaffolding example module's install and uninstall code.
+ */
+
+
+/**
+ * Implementation of hook_install().
+ *
+ * This hook is called the first time the module is installed. Unless it is
+ * explicitly uninstalled, disabling and re-enabling will not trigger this hook
+ * a second time.
+ */
+function quickpaylite_install() {
+  drupal_install_schema('quickpaylite');
+}
+
+/**
+ * Implementation of hook_schema().
+ *
+ * This hook should return a SchemaAPI array with a full definition of the most
+ * up-to-date version of the module's database tables.
+ */
+function quickpaylite_schema() {
+  $schema['quickpaylite_payment'] = array(
+    'description' => t('Keeps track of payments and their status.'),
+    'fields' => array(
+      'payment_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('Unique identifier for the {quickpaylite_payment}.'),
+      ),
+      'hash' => array(
+        'type' => 'varchar',
+        'length' => 40,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t("SHA-1 hash for identifying this payment, used in URLs etc.")
+      ),
+      'amount' => array(
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'description' => t('The amount due.'),
+      ),
+      'status' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'description' => t('The current status of this payment.'),
+      ),
+      'module' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'description' => t('')
+      ),
+    ),
+    'primary key' => array('payment_id'),
+    'unique keys' => array(
+      'hash' => array('hash')
+    ),
+    'indexes' => array(
+      'status' => array('status'),
+      'module' => array('module'),
+    ),
+  );
+
+  $schema['quickpaylite_result'] = array(
+    'description' => t('Keeps track of every payment processing and its result.'),
+    'fields' => array(
+      'result_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('Unique identifier for the {quickpaylite_result}.'),
+      ),
+      'payment_id' => array(
+        'description' => t('The {quickpaylite_payment}.payment_id this record affects.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'amount' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => t('The amount of money in the smallest unit of that currency (eg. cents)')
+      ),
+      'time' => array(
+        'description' => t('The timestamp returned from the payment processor.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ordernum' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'description' => t("Order number for this order."),
+      ),
+      'pbsstat' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t("Status code from PBS."),
+      ),
+      'qpstat' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t("Status code from Quickpay."),
+      ),
+      'qpstatmsg' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t("Status message from Quickpay."),
+      ),
+      'merchantemail' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t("Merchant e-mail."),
+      ),
+      'merchant' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t("Merchant name."),
+      ),
+      'currency' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t("Currency code."),
+      ),
+      'cardtype' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t("Credit card type."),
+      ),
+      'transaction' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => t("Transaction ID."),
+      ),
+      'md5checkV2' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'description' => t("MD5 hash from Quickpay for validation purposes."),
+      ),
+      'passed_validation' => array(
+        'type' => 'int',
+        // Silly Schema API doesn't have a proper bool type.
+        'pgsql_type' => 'bool',
+        'not null' => TRUE,
+        'description' => t("Whetcher the MD5 hash from Quickpay was valid."),
+      ),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ *
+ * This hook is called when the already-disabled module is explicitly uninstalled
+ * by the administrator -- simple disabling the module will trigger hook_disable().
+ * It should delete any database tables added by the module, remove any variables
+ * that are unique to the module, and clear out any cached data.
+ */
+function quickpaylite_uninstall() {
+  drupal_uninstall_schema('quickpaylite');
+  cache_clear_all('quickpaylite:*', 'cache', TRUE);
+  variable_del('quickpaylite_setting');
+}

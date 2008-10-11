@@ -1,0 +1,5 @@
+; $Id$
+name = Quickpay Lite
+description = A light library for processing payments with Quickpay.
+core = 6.x
+php = 5.2
