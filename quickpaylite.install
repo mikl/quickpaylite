@@ -82,6 +82,13 @@ function quickpaylite_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'ip_address' => array(
+        'description' => t('The IP-address that this data came from.'),
+        'type' => 'varchar',
+        'length' => 128,
+        'pgsql_type' => 'inet',
+        'not null' => TRUE,
+      ),
       'amount' => array(
         'type' => 'int',
         'not null' => TRUE,
