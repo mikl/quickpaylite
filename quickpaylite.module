@@ -44,6 +44,7 @@ function quickpaylite_menu() {
     'title' => 'Pay your order',
     'type' => MENU_CALLBACK,
     'page callback' => 'quickpaylite_page_start',
+    'page arguments' => array(1),
     'access arguments' => array('make payments with Quickpay lite'),
     'file' => 'quickpaylite.pages.inc',
   );
@@ -52,6 +53,7 @@ function quickpaylite_menu() {
     'title' => 'Pay your order',
     'type' => MENU_CALLBACK,
     'page callback' => 'quickpaylite_page_success',
+    'page arguments' => array(1),
     'access arguments' => array('make payments with Quickpay lite'),
     'file' => 'quickpaylite.pages.inc',
   );
@@ -60,6 +62,7 @@ function quickpaylite_menu() {
     'title' => 'Pay your order',
     'type' => MENU_CALLBACK,
     'page callback' => 'quickpaylite_page_error',
+    'page arguments' => array(1),
     'access arguments' => array('make payments with Quickpay lite'),
     'file' => 'quickpaylite.pages.inc',
   );
@@ -67,7 +70,8 @@ function quickpaylite_menu() {
   $items['payment/%quickpaylite_payment/result'] = array(
     'title' => 'Quickpay endpoint',
     'type' => MENU_CALLBACK,
-    'page callback' => 'quickpaylite_page_result',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quickpaylite_page_result_form', 1),
     'access callback' => TRUE,
     'file' => 'quickpaylite.pages.inc',
   );
