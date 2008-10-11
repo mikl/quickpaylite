@@ -16,63 +16,59 @@
 function quickpaylite_menu() {
   $items = array();
 
-  $items['admin/build/quickpaylite'] = array(
-    'title' => 'Scaffolding',
-    'description' => 'Manage records',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quickpaylite_overview_form'),
-    'access arguments' => array('administer scaffolding data'),
+  $items['admin/quickpaylite'] = array(
+    'title' => 'Quickpay lite',
+    'description' => 'List Quickpay lite payments',
+    'page callback' => 'quickpaylite_overview_pager',
+    'access arguments' => array('administer Quickpay lite'),
     'file' => 'quickpaylite.admin.inc',
   );
 
-  $items['admin/build/quickpaylite/sorted'] = array(
-    'title' => 'Sorted list',
+  $items['admin/quickpaylite/overview'] = array(
+    'title' => 'Overview',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
 
-  $items['admin/build/quickpaylite/pager'] = array(
-    'title' => 'Paged list',
-    'description' => 'Manage records',
-    'page callback' => 'quickpaylite_overview_pager',
-    'access arguments' => array('administer scaffolding data'),
+  $items['admin/quickpaylite/settings'] = array(
+    'title' => 'List Quickpay lite transactions',
     'type' => MENU_LOCAL_TASK,
-    'weight' => -5,
+    'weight' => 10,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quickpaylite_overview_pager'),
+    'access arguments' => array('administer Quickpay lite'),
     'file' => 'quickpaylite.admin.inc',
   );
 
-  $items['admin/build/quickpaylite/add'] = array(
-    'title' => 'Add record',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quickpaylite_form'),
-    'access arguments' => array('administer scaffolding data'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'quickpaylite.admin.inc',
-  );
-
-  $items['admin/build/quickpaylite/%quickpaylite_record/edit'] = array(
-    'title' => 'Edit record',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quickpaylite_form', 3),
-    'access arguments' => array('administer scaffolding data'),
+  $items['payment/%quickpaylite_payment'] = array(
+    'title' => 'Pay your order',
     'type' => MENU_CALLBACK,
-    'file' => 'quickpaylite.admin.inc',
+    'page callback' => 'quickpaylite_page_start',
+    'access arguments' => array('make payments with Quickpay lite'),
+    'file' => 'quickpaylite.pages.inc',
   );
 
-  $items['admin/build/quickpaylite/%quickpaylite_record/delete'] = array(
-    'title' => 'Delete record',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quickpaylite_delete_confirm', 3),
-    'access arguments' => array('administer scaffolding data'),
+  $items['payment/%quickpaylite_payment/success'] = array(
+    'title' => 'Pay your order',
     'type' => MENU_CALLBACK,
-    'file' => 'quickpaylite.admin.inc',
+    'page callback' => 'quickpaylite_page_success',
+    'access arguments' => array('make payments with Quickpay lite'),
+    'file' => 'quickpaylite.pages.inc',
   );
 
-  $items['quickpaylite'] = array(
-    'title' => 'Scaffolding records',
-    'description' => 'Lists records saved by the Scaffolding Example module.',
-    'page callback' => 'quickpaylite_page',
-    'access arguments' => array('view content'),
+  $items['payment/%quickpaylite_payment/error'] = array(
+    'title' => 'Pay your order',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'quickpaylite_page_error',
+    'access arguments' => array('make payments with Quickpay lite'),
+    'file' => 'quickpaylite.pages.inc',
+  );
+
+  $items['payment/%quickpaylite_payment/result'] = array(
+    'title' => 'Quickpay endpoint',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'quickpaylite_page_result',
+    'access callback' => TRUE,
     'file' => 'quickpaylite.pages.inc',
   );
   return $items;
@@ -85,7 +81,7 @@ function quickpaylite_menu() {
  * access.
  */
 function quickpaylite_perm() {
-  return array('administer scaffolding data');
+  return array('administer Quickpay lite', 'make payments with Quickpay lite');
 }
 
 /**
@@ -109,51 +105,34 @@ function quickpaylite_theme() {
 /**
  * Loader function for individual records.
  *
- * Because we use '%quickpaylite_record' as a wildcard in our hook_menu()
+ * Because we use '%quickpaylite_payment' as a wildcard in our hook_menu()
  * handler, this function will also be called automatically when we go to edit
  * or delete a record. Thanks, Menu API!.
  *
- * @param $record_id
- *   An int containing the ID of a record.
+ * @param $string
+ *   Either an int containing the ID of a record or the record's hash.
  * @return
  *   A single record in array format, or FALSE if none matched the incoming ID.
  */
-function quickpaylite_record_load($record_id) {
-  $sql = "SELECT * FROM {scaffolding_record} WHERE record_id = %d";
-  $result = db_query($sql, $record_id);
-  if ($record = db_fetch_array($result)) {
+function quickpaylite_payment_load($string) {
+  // SHA-1 hashes as hex are 40 characters
+  if (strlen($string) == 40) {
+    $sql = "SELECT * FROM {quickpaylite_payment} WHERE hash = %d";
+  }
+  elseif (is_numeric($string) && $string > 0) {
+    $sql = "SELECT * FROM {quickpaylite_payment} WHERE payment_id = %d";
+  }
+  else {
+    return FALSE;
+  }
+
+  $result = db_query($sql, $payment_id);
+  if ($record = db_fetch_object($result)) {
     return $record;
   }
   else {
     return FALSE;
   }
-}
-
-/**
- * Public loader function for the full collection of records.
- *
- * In situations where the module's data rarely changes, or is being used
- * frequently (for example, loaded and processed on every page load), this
- * is a prime candidate for caching. See The Beginner's Guide to Caching at
- * http://www.lullabot.com/articles/a_beginners_guide_to_caching_data for more
- * details.
- *
- * This function assumes that results should be sorted by 'weight' -- if your
- * module doesn't store a weight column on its records, or if you need to sort
- * on some other property, this function's SQL should be updated as well.
- *
- * @return
- *   An array of all records, keyed by id.
- */
-function quickpaylite_record_load_all() {
-  $sql = 'SELECT * FROM {scaffolding_record} ORDER BY weight ASC';
-  $result = db_query($sql);
-
-  $records = array();
-  while ($record = db_fetch_array($result)) {
-    $records[$record['record_id']] = $record;
-  }
-  return $records;
 }
 
 /**
@@ -168,28 +147,17 @@ function quickpaylite_record_load_all() {
  * act on the ID as needed (redirecting to a 'view' page after inserting, etc).
  *
  * @param $record
- *   A record to be saved. If $record['record_id'] is set, the record will be updated.
+ *   A record to be saved. If $record['payment_id'] is set, the record will be updated.
  *   Otherwise, a new record will be inserted into the database.
  * @return
  *   The saved record, with its ID set.
  */
-function quickpaylite_record_save($record) {
-  if (isset($record['record_id'])) {
-    drupal_write_record('scaffolding_record', $record, 'record_id');
+function quickpaylite_payment_save($record) {
+  if (isset($record['payment_id'])) {
+    drupal_write_record('quickpaylite_payment', $record, 'payment_id');
   }
   else {
-    drupal_write_record('scaffolding_record', $record);
+    drupal_write_record('quickpaylite_payment', $record);
   }
   return $record;
-}
-
-/**
- * Deletes a record, given its unique ID.
- *
- * @param $record_id
- *   An int containing the ID of a record.
- */
-function quickpaylite_record_delete($record_id) {
-  $sql = 'DELETE FROM {scaffolding_record} WHERE record_id = %d';
-  db_query($sql, $record_id);
 }

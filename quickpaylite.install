@@ -160,7 +160,7 @@ function quickpaylite_schema() {
         // Silly Schema API doesn't have a proper bool type.
         'pgsql_type' => 'bool',
         'not null' => TRUE,
-        'description' => t("Whetcher the MD5 hash from Quickpay was valid."),
+        'description' => t("Whether the MD5 hash from Quickpay was valid."),
       ),
     ),
   );
