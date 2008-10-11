@@ -1,32 +1,129 @@
 <?php
-// $Id: scaffolding_example.pages.inc,v 1.3 2008/06/02 16:44:25 weitzman Exp $
+// $Id$
 
 /**
  * @file
  * Builds the module's user-facing pages.
- *
- * Contains a simple page callback and themable function for rendering a single
- * record.
  */
 
 /**
- * Build a simple listing page for records.
+ * The payment start-page.
+ *
+ * A simple page with a little info and a button that starts the payment process.
+ *
+ * @param $payment
+ *    The loaded payment object that we're trying to process
  */
-function scaffolding_example_page() {
-  $output = '';
+function quickpaylite_page_start($payment) {
+  $output = 'Click the button to pay.';
 
-  if ($records = scaffolding_example_record_load_all()) {
-    foreach ($records as $record) {
-      $output .= theme('scaffolding_example_record', $record);
-    }
-  }
-  else {
-    drupal_set_message(t('No records have been added.'));
-  }
+  $output .= drupal_get_form('quickpaylite_page_payment_form', $payment);
 
   return $output;
 }
 
+/**
+ * Build the main payment initiation form
+ */
+function quickpaylite_page_payment_form(&$form_state, $payment) {
+  if (!is_object($payment)) {
+    return drupal_not_found();
+  }
+  $form = array();
+  $form['#method'] = 'post';
+  $form['#action'] = 'https://secure.quickpay.dk/quickpay.php';
+  $form['#cache'] = FALSE;
+
+  $form['language'] = array(
+    '#type' => 'hidden',
+    '#value' => 'da',
+  );
+
+  $form['autocapture'] = array(
+    '#type' => 'hidden',
+    '#value' => '1',
+  );
+
+  $form['ordernum'] = array(
+    '#type' => 'hidden',
+    // Pad the ID with zeroes, since Quickpay requires four digits.
+    '#value' => sprintf("%'04d", $payment->payment_id),
+  );
+
+  $form['amount'] = array(
+    '#type' => 'hidden',
+    '#value' => round($payment->amount * 100),
+  );
+
+  $form['currency'] = array(
+    '#type' => 'hidden',
+    '#value' => DKK,
+  );
+
+  $form['merchant'] = array(
+    '#type' => 'hidden',
+    '#value' => variable_get('quickpaylite_merchant', 0),
+  );
+
+  $form['okpage'] = array(
+    '#type' => 'hidden',
+    '#value' => url('payment/'. $payment->hash .'/success', array('absolute' => TRUE)),
+  );
+
+  $form['errorpage'] = array(
+    '#type' => 'hidden',
+    '#value' => url('payment/'. $payment->hash .'/error', array('absolute' => TRUE)),
+  );
+
+  $form['resultpage'] = array(
+    '#type' => 'hidden',
+    '#value' => url('payment/'. $payment->hash .'/result', array('absolute' => TRUE)),
+  );
+
+  $form['md5checkV2'] = array(
+    '#type' => 'hidden',
+    '#value' => md5($form['language']['#value'] . $form['autocapture']['#value'].
+                    $form['ordernum']['#value'] . $form['amount']['#value'] .
+                    $form['currency']['#value'] . $form['merchant']['#value'] .
+                    $form['okpage']['#value'] . $form['errorpage']['#value'] .
+                    $form['resultpage']['#value'] . variable_get('quickpaylite_md5secret', 0)),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Make payment'),
+  );
+
+  return $form;
+}
+
+/**
+ * Success page
+ */
+function quickpaylite_page_success($payment) {
+  return 'Yay!';
+}
+
+/**
+ * Error page
+ */
+function quickpaylite_page_error($payment) {
+  return 'Nay.';
+}
+
+
+/**
+ * Result page.
+ *
+ * Captures data from Quickpay.
+ */
+function quickpaylite_page_result($payment) {
+  $entry = array();
+
+
+
+  exit('Bye.');
+}
 
 /**
  * Theme a single record.
