@@ -116,12 +116,12 @@ function quickpaylite_theme() {
  * @param $string
  *   Either an int containing the ID of a record or the record's hash.
  * @return
- *   A single record in array format, or FALSE if none matched the incoming ID.
+ *   A single record in object format, or FALSE if none matched the incoming ID.
  */
 function quickpaylite_payment_load($string) {
   // SHA-1 hashes as hex are 40 characters
   if (strlen($string) == 40) {
-    $sql = "SELECT * FROM {quickpaylite_payment} WHERE hash = %d";
+    $sql = "SELECT * FROM {quickpaylite_payment} WHERE hash = '%s'";
   }
   elseif (is_numeric($string) && $string > 0) {
     $sql = "SELECT * FROM {quickpaylite_payment} WHERE payment_id = %d";
@@ -130,7 +130,7 @@ function quickpaylite_payment_load($string) {
     return FALSE;
   }
 
-  $result = db_query($sql, $payment_id);
+  $result = db_query($sql, $string);
   if ($record = db_fetch_object($result)) {
     return $record;
   }
@@ -164,4 +164,13 @@ function quickpaylite_payment_save($record) {
     drupal_write_record('quickpaylite_payment', $record);
   }
   return $record;
+}
+
+/**
+ * Writes a new entry to the log with data from the result page
+ */
+function quickpaylite_log_write($entry) {
+  drupal_write_record('quickpaylite_log', $entry);
+
+  return $entry;
 }
