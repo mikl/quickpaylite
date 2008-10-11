@@ -16,6 +16,11 @@
  */
 function quickpaylite_install() {
   drupal_install_schema('quickpaylite');
+
+  // Generate a salt for MD5 communication with Quickpay
+  // Throw together some rather unpredictable values and create a nice SHA1 hash.
+  $salt = sha1(mt_rand . $_SERVER['REQUEST_TIME'] . $_SERVER['HTTP_USER_AGENT']);
+  variable_set('quickpaylite_md5_salt', $salt);
 }
 
 /**
@@ -178,5 +183,5 @@ function quickpaylite_schema() {
 function quickpaylite_uninstall() {
   drupal_uninstall_schema('quickpaylite');
   cache_clear_all('quickpaylite:*', 'cache', TRUE);
-  variable_del('quickpaylite_setting');
+  variable_del('quickpaylite_md5_salt');
 }
