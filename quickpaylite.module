@@ -44,25 +44,25 @@ function quickpaylite_menu() {
     'title' => 'Pay your order',
     'type' => MENU_CALLBACK,
     'page callback' => 'quickpaylite_page_start',
-    'page arguments' => array(1),
+    'page arguments' => array(1, TRUE),
     'access arguments' => array('make payments with Quickpay lite'),
     'file' => 'quickpaylite.pages.inc',
   );
 
   $items['payment/%quickpaylite_payment/success'] = array(
-    'title' => 'Pay your order',
+    'title' => 'Payment successful',
     'type' => MENU_CALLBACK,
     'page callback' => 'quickpaylite_page_success',
-    'page arguments' => array(1),
+    'page arguments' => array(1, TRUE),
     'access arguments' => array('make payments with Quickpay lite'),
     'file' => 'quickpaylite.pages.inc',
   );
 
   $items['payment/%quickpaylite_payment/error'] = array(
-    'title' => 'Pay your order',
+    'title' => 'Payment error',
     'type' => MENU_CALLBACK,
     'page callback' => 'quickpaylite_page_error',
-    'page arguments' => array(1),
+    'page arguments' => array(1, TRUE),
     'access arguments' => array('make payments with Quickpay lite'),
     'file' => 'quickpaylite.pages.inc',
   );
@@ -70,8 +70,8 @@ function quickpaylite_menu() {
   $items['payment/%quickpaylite_payment/result'] = array(
     'title' => 'Quickpay endpoint',
     'type' => MENU_CALLBACK,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quickpaylite_page_result_form', 1),
+    'page callback' => 'quickpaylite_page_result',
+    'page arguments' => array(1, TRUE),
     'access callback' => TRUE,
     'file' => 'quickpaylite.pages.inc',
   );
@@ -115,15 +115,17 @@ function quickpaylite_theme() {
  *
  * @param $string
  *   Either an int containing the ID of a record or the record's hash.
+ * @param $hash_only
+ *   If set, try loading from a hash value only, for security. Default FALSE.
  * @return
  *   A single record in object format, or FALSE if none matched the incoming ID.
  */
-function quickpaylite_payment_load($string) {
+function quickpaylite_payment_load($string, $hash_only = FALSE) {
   // SHA-1 hashes as hex are 40 characters
   if (strlen($string) == 40) {
     $sql = "SELECT * FROM {quickpaylite_payment} WHERE hash = '%s'";
   }
-  elseif (is_numeric($string) && $string > 0) {
+  elseif (!$hash_only && is_numeric($string) && $string > 0) {
     $sql = "SELECT * FROM {quickpaylite_payment} WHERE payment_id = %d";
   }
   else {
