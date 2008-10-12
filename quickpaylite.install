@@ -85,7 +85,6 @@ function quickpaylite_schema() {
       'ip_address' => array(
         'description' => t('The IP-address that this data came from.'),
         'type' => 'varchar',
-        'length' => 128,
         'pgsql_type' => 'inet',
         'not null' => TRUE,
       ),
@@ -96,8 +95,8 @@ function quickpaylite_schema() {
       ),
       'time' => array(
         'description' => t('The timestamp returned from the payment processor.'),
-        'type' => 'int',
-        'unsigned' => TRUE,
+        'type' => 'varchar',
+        'length' => 128,
         'not null' => TRUE,
       ),
       'ordernum' => array(
@@ -110,7 +109,7 @@ function quickpaylite_schema() {
         'type' => 'int',
         'size' => 'small',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => t("Status code from PBS."),
       ),
       'qpstat' => array(
@@ -123,37 +122,37 @@ function quickpaylite_schema() {
       'qpstatmsg' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => t("Status message from Quickpay."),
       ),
       'merchantemail' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => t("Merchant e-mail."),
       ),
       'merchant' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => t("Merchant name."),
       ),
       'currency' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => t("Currency code."),
       ),
       'cardtype' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => t("Credit card type."),
       ),
       'transaction' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => t("Transaction ID."),
       ),
       'md5checkV2' => array(
@@ -161,13 +160,6 @@ function quickpaylite_schema() {
         'length' => 32,
         'not null' => TRUE,
         'description' => t("MD5 hash from Quickpay for validation purposes."),
-      ),
-      'passed_validation' => array(
-        'type' => 'int',
-        // Silly Schema API doesn't have a proper bool type.
-        'pgsql_type' => 'bool',
-        'not null' => TRUE,
-        'description' => t("Whether the MD5 hash from Quickpay was valid."),
       ),
     ),
   );
