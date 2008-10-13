@@ -158,14 +158,14 @@ function quickpaylite_payment_load($string, $hash_only = FALSE) {
  * @return
  *   The saved record, with its ID set.
  */
-function quickpaylite_payment_save($record) {
-  if (isset($record['payment_id'])) {
-    drupal_write_record('quickpaylite_payment', $record, 'payment_id');
+function quickpaylite_payment_save($payment) {
+  if (isset($payment['payment_id'])) {
+    drupal_write_record('quickpaylite_payment', $payment, 'payment_id');
   }
   else {
-    drupal_write_record('quickpaylite_payment', $record);
+    drupal_write_record('quickpaylite_payment', $payment);
   }
-  return $record;
+  return $payment;
 }
 
 /**
