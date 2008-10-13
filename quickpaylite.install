@@ -25,6 +25,7 @@ function quickpaylite_install() {
  * up-to-date version of the module's database tables.
  */
 function quickpaylite_schema() {
+  $schema = array();
   $schema['quickpaylite_payment'] = array(
     'description' => t('Keeps track of payments and their status.'),
     'fields' => array(
