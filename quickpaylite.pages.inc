@@ -41,7 +41,7 @@ function quickpaylite_page_payment_form(&$form_state, $payment) {
 
   $form['autocapture'] = array(
     '#type' => 'hidden',
-    '#value' => '1',
+    '#value' => '0',
   );
 
   $form['ordernum'] = array(
@@ -118,9 +118,33 @@ function quickpaylite_page_error($payment) {
  * Captures data from Quickpay.
  */
 function quickpaylite_page_result($payment) {
-  $entry = array();
+  // The stuff we get posted from Quickpay.
+  $fields = array('amount', 'time', 'ordernum', 'pbsstat', 'qpstat', 'qpstatmsg',
+                  'merchantemail', 'merchant', 'currency', 'cardtype',
+                  'transaction', 'md5checkV2');
 
+  $check = array();
 
+  foreach ($fields as $field) {
+    $entry[$field] = $_POST[$field];
+
+    if ($field != 'md5checkV2') {
+      $check[$field] = $_POST[$field];
+    }
+  }
+
+  $entry['payment_id'] = $payment->payment_id;
+  $entry['ip_address'] = $_SERVER['REMOTE_ADDR'];
+
+  $md5 = md5(implode('', $check) . variable_get('quickpaylite_md5secret', 0));
+
+  watchdog('quickpaylite', 'Entry: '. var_export($entry, TRUE));
+  watchdog('quickpaylite', 'Check: '. var_export($check, TRUE));
+  watchdog('quickpaylite', 'md5: '. $md5);
+
+  if ($_POST['md5checkV2'] == $md5) {
+    quickpaylite_log_write($entry);
+  }
 
   exit('Bye.');
 }
