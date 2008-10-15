@@ -150,12 +150,22 @@ function quickpaylite_page_result($payment) {
 }
 
 /**
+ * PBS unavailable page.
+ *
+ * Displayed instead of payment form when we for some reason cannot clear payments
+ * through PBS.
+ */
+function quickpaylite_page_pbs_unavailable() {
+  return '<p>'. t('Sorry, we are not currently able to process your credit card with PBS. We will send you an email with instructions on how to complete your payment, when processing becomes available again.') .'</p><p>'. t('Our apologies for the inconvienience.') .'</p>';
+}
+
+/**
  * Theme a single record.
  *
  * @ingroup themeable
  */
 function theme_scaffolding_example_record($record) {
-  $output = '<div class="scaffolding-example-record" id="scaffolding-example-record-' . check_plain($record['record_id']) . '">';
+  $output  = '<div class="scaffolding-example-record" id="scaffolding-example-record-' . check_plain($record['record_id']) . '">';
   $output .= '<h3 class="title">' . check_plain($record['title']) . '</h3>';
   $output .= '<p>' . check_markup($record['content']) . '</p>';
   $output .= '</div>';

@@ -75,6 +75,14 @@ function quickpaylite_menu() {
     'access callback' => TRUE,
     'file' => 'quickpaylite.pages.inc',
   );
+
+  $items['payment/pbs-unavailable'] = array(
+    'title' => 'PBS unavailable',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'quickpaylite_page_pbs_unavailable',
+    'access arguments' => array('make payments with Quickpay lite'),
+    'file' => 'quickpaylite.pages.inc',
+  );
   return $items;
 }
 
